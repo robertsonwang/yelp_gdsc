@@ -3,19 +3,24 @@ import requests
 import re
 import json
 
-def biz_links(articles, link_list):
+def biz_links(articles, link_dict):
 #Input: Beautiful soup object, parsed for a search result page from Yelp and a list of existing links
 #Output: List of links to all businesses on that page
 
     articles = articles.find_all("div", class_="biz-listing-large")
+    
     for article in articles:
-        match = re.search(r'href=[\'"]?([^\'" >]+)', str(article.find_all(href = True)))
-        if match:
-            link = match.group(0)
+        rating_match = re.search(r'(.*) star rating', str(article.find_all('div', class_ = "biz-rating biz-rating-large clearfix")))
+        link_match = re.search(r'href=[\'"]?([^\'" >]+)', str(article.find_all(href = True)))
+        if link_match and rating_match:
+            link = link_match.group(0)
             link = link[6:]
-        link_list.append(link)
+            link = link.replace('?osq=Restaurants', '')
+            rating = rating_match.group(0)[len(rating_match.group(0))-15:]
+            rating = rating.replace("star rating", "")
+            link_dict[link] = rating
         
-    return link_list
+    return link_dict
     
 
 ## <span class="business-attribute price-range">$$</span>
